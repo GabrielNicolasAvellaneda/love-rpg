@@ -61,7 +61,13 @@ function drawMap(map, tileset, quads, tileWidth, tileHeight)
 
 -- Love callbacks
 
+function initializeWindow()
+  love.window.setMode(800, 600)
+end
+
+
 function love.load() 
+  initializeWindow()
   local tileset = love.graphics.newImage("assets/tileset.png") 
   -- Generate a list of quads for a tileset.
   local tilesPerRow = 2
@@ -74,12 +80,12 @@ function love.load()
   Global.tileWidth = tileWidth
   Global.tileHeight = tileHeight
   Global.quads = quads
-  Global.stageHorizontalTileCount = 25
+  Global.stageHorizontalTileCount = 30 
   Global.maxStageWidthPixels = Global.tileWidth * Global.stageHorizontalTileCount
   Global.scrollDirection = "right" 
   Global.scrollOffsetDelta = 4
   Global.stageOffset = 0
-  Global.screenWidthPixels = 640 
+  Global.screenWidthPixels = 800 
   --local map = loadMap("map_01.lua")
   --
   local map = generateRandomMap(Global.stageHorizontalTileCount, 64)
@@ -99,7 +105,7 @@ end
 -- Refactor 
 function normalizeOffset(offset, minOffset, maxOffset)
   if offset < -maxOffset then
-    offset = maxOffset
+    offset = -maxOffset
   elseif offset > minOffset then
     offset = minOffset 
   end
@@ -118,6 +124,7 @@ end
 
 function love.update()
   local newOffset = normalizeOffset(calculateOffset(Global.stageOffset, Global.scrollDirection, Global.scrollOffsetDelta), 0, calculateMaxOffset(Global.maxStageWidthPixels, Global.screenWidthPixels))
+  print(newOffset)
   Global.stageOffset = newOffset 
 end
 
