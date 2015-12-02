@@ -1,4 +1,5 @@
 fun = require("fun")()
+local lib = require("lib") 
 
 function genTransformTo2D(width, height)
   return function (n)
@@ -9,9 +10,6 @@ function genTransformTo2D(width, height)
   end
 end
 
-
--- This could be a map of a sequence, to a 2d to 1d transformation and a newQuad call.
--- Maybe use a generator for x, y coordinates?
 function generateQuads(width, height, rows, columns, tilesetWidth, tilesetHeight)
   local totalQuads = rows * columns 
   local xys = map(genTransformTo2D(width, height), range(0, totalQuads-1))
@@ -45,15 +43,24 @@ function love.load()
   Global.map = map
 end
 
-function drawMap(map, tileset, quads, tileWidth, tileHeight)
-  -- Two dimensional iterator. Could be made by composing 2 maps and a draw clousure. 
-
-  for i, row in ipairs(map) do
-    for j, val in ipairs(row) do
-      love.graphics.draw(Global.tileset, Global.quads[val], (i-1)*tileWidth, (j-1)*tileHeight)
+function eachCell(func, map)
+   for y, row in ipairs(map) do
+    for x, val in ipairs(row) do
+      func(val, x, y) 
     end
   end
 end
+
+function drawMap(map, tileset, quads, tileWidth, tileHeight)
+  local drawCell = function (tileIndex, x, y)
+      love.graphics.draw(Global.tileset, Global.quads[tileIndex], x, y)
+  end
+
+  eachCell(
+    function (cellValue, x, y)
+      drawCell(cellValue, x * tileWidth, y * tileHeight)
+    end, map)
+ end
 
 function love.draw()
   drawMap(Global.map, Global.tileset, Global.quads, Global.tileWidth, Global.tileHeight)
