@@ -11,6 +11,11 @@ function generateQuads(width, height, rows, columns, tilesetWidth, tilesetHeight
   return quads
 end
 
+function loadMap(path)
+  f = loadfile(path)
+  return f()
+end
+
 function love.load() 
   local tileset = love.graphics.newImage("assets/tileset.png") 
   -- Generate a list of quads for a tileset.
@@ -19,13 +24,8 @@ function love.load()
   local tileWidth, tileHeight = 32, 32
   local quads = generateQuads(tileWidth, tileHeight, tilesPerRow, tilesRows, tileset:getWidth(), tileset:getHeight())  
 
-  local map =
-  {
-    {1, 1, 1},
-    {1, 2, 1},
-    {1, 1, 1} 
-  }
-
+  local map = loadMap("map_01.lua")
+  
   Global = {}
   Global.tileset = tileset
   Global.tileWidth = tileWidth
