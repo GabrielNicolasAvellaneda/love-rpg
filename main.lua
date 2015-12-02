@@ -69,18 +69,21 @@ function love.load()
   local tileWidth, tileHeight = 32, 32
   local quads = generateQuads(tileWidth, tileHeight, tilesPerRow, tilesRows, tileset:getWidth(), tileset:getHeight())  
 
-  --local map = loadMap("map_01.lua")
-  local map = generateRandomMap(64, 64)
-  
   Global = {}
   Global.tileset = tileset
   Global.tileWidth = tileWidth
   Global.tileHeight = tileHeight
   Global.quads = quads
-  Global.map = map
-  Global.offset = 0
+  Global.stageHorizontalTileCount = 25
+  Global.maxStageWidthPixels = Global.tileWidth * Global.stageHorizontalTileCount
   Global.scrollDirection = "right" 
-  Global.scrollOffset = 4
+  Global.scrollOffsetDelta = 4
+  Global.stageOffset = 0
+  Global.screenWidthPixels = 640 
+  --local map = loadMap("map_01.lua")
+  --
+  local map = generateRandomMap(Global.stageHorizontalTileCount, 64)
+  Global.map = map
 end
 
 function isScrollChangeKey(key)
@@ -89,20 +92,37 @@ end
 
 function love.keypressed(key, isrepeat)
   if isScrollChangeKey(key) then
-    Global.scrollDirection = key  
+    Global.scrollDirection = key 
   end
 end
 
+-- Refactor 
+function normalizeOffset(offset, minOffset, maxOffset)
+  if offset < -maxOffset then
+    offset = maxOffset
+  elseif offset > minOffset then
+    offset = minOffset 
+  end
+  return offset 
+end
+
 function calculateOffset(currentOffset, direction, dx)
-  local factor = (direction == "right" and 1) or -1
-  return currentOffset + factor * dx 
+  local factor = (direction == "right" and -1) or 1
+  local newOffset = currentOffset + factor * dx 
+  return newOffset
+end
+
+function calculateMaxOffset(stageWidthPixels, screenWidthPixels)
+  return stageWidthPixels - screenWidthPixels
 end
 
 function love.update()
-  Global.offset = calculateOffset(Global.offset, Global.scrollDirection, Global.scrollOffset)
+  local newOffset = normalizeOffset(calculateOffset(Global.stageOffset, Global.scrollDirection, Global.scrollOffsetDelta), 0, calculateMaxOffset(Global.maxStageWidthPixels, Global.screenWidthPixels))
+  Global.stageOffset = newOffset 
 end
 
 function love.draw()
-  love.graphics.translate(Global.offset, 0)
+  love.graphics.translate(Global.stageOffset, 0)
   drawMap(Global.map, Global.tileset, Global.quads, Global.tileWidth, Global.tileHeight)
 end
+
