@@ -79,14 +79,27 @@ function love.load()
   Global.quads = quads
   Global.map = map
   Global.offset = 0
+  Global.scrollDirection = "right" 
+  Global.scrollOffset = 4
+end
+
+function isScrollChangeKey(key)
+  return key == "right" or key == "left"
 end
 
 function love.keypressed(key, isrepeat)
+  if isScrollChangeKey(key) then
+    Global.scrollDirection = key  
+  end
+end
 
+function calculateOffset(currentOffset, direction, dx)
+  local factor = (direction == "right" and 1) or -1
+  return currentOffset + factor * dx 
 end
 
 function love.update()
-  Global.offset = Global.offset + 4 
+  Global.offset = calculateOffset(Global.offset, Global.scrollDirection, Global.scrollOffset)
 end
 
 function love.draw()
