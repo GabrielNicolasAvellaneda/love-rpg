@@ -8,18 +8,27 @@ Character.state = "idle"
 Character.move_up_target = 0
 Character.walk_speed = 8  
 Character.quads = {
-  ["moving_down"] = love.graphics.newQuad(0, 0, 32, 32, 384, 246),
-  ["moving_left"] = love.graphics.newQuad(0, 32, 32, 32, 384, 246),
-  ["moving_right"] = love.graphics.newQuad(0, 64, 32, 32, 384, 246),
-  ["moving_up"] = love.graphics.newQuad(0, 96, 32, 32, 384, 246),
-  ["idle"] = love.graphics.newQuad(0, 0, 32, 32, 384, 246) 
+  ["moving_down"] = { love.graphics.newQuad(0, 0, 32, 32, 384, 246), love.graphics.newQuad(32, 0, 32, 32, 384, 246), love.graphics.newQuad(64, 0, 32, 32, 384, 246) },
+  ["moving_left"] = { love.graphics.newQuad(0, 32, 32, 32, 384, 246), love.graphics.newQuad(32, 32, 32, 32, 384, 246), love.graphics.newQuad(64, 32, 32, 32, 384, 246) },
+  ["moving_right"] = { love.graphics.newQuad(0, 64, 32, 32, 384, 246), love.graphics.newQuad(32, 64, 32, 32, 384, 246), love.graphics.newQuad(64, 64, 32, 32, 384, 246) },
+  ["moving_up"] = { love.graphics.newQuad(0, 96, 32, 32, 384, 246), love.graphics.newQuad(32, 96, 32, 32, 384, 246), love.graphics.newQuad(64, 96, 32, 32, 384, 246) },
+  ["idle"] = { love.graphics.newQuad(0, 0, 32, 32, 384, 246) } 
 } 
-function Character:isBusy()
-  return self.state ~= "idle"
+
+function Character:calculateCurrentQuad()
+  local quads = self.quads[self.state]
+  self.current_quad_index = self.current_quad_index + 1
+  if (self.current_quad_index > #quads) then
+    self.current_quad_index = 1
+  end
+  return quads[self.current_quad_index]
 end
 
-function Character:getCurrentQuad()
-  return self.quads[self.state]  
+Character.current_quad_index = 0
+Character.current_quad = Character:calculateCurrentQuad() 
+
+function Character:isBusy()
+  return self.state ~= "idle"
 end
 
 function Character:moveLeft()
@@ -28,6 +37,7 @@ function Character:moveLeft()
   end
   self.state = "moving_left"
   self.state_target_value = self.x - 32
+  self.current_quad_index = 0
 end
 
 function Character:moveRight()
@@ -36,6 +46,7 @@ function Character:moveRight()
   end
   self.state = "moving_right"
   self.state_target_value = self.x + 32 
+  self.current_quad_index = 0
 end
 
 function Character:moveUp()
@@ -44,6 +55,7 @@ function Character:moveUp()
   end
   self.state = "moving_up"
   self.state_target_value = self.y - 32
+  self.current_quad_index = 0
 end
 
 function Character:moveDown()
@@ -52,10 +64,12 @@ function Character:moveDown()
   end
   self.state = "moving_down"
   self.state_target_value = self.y + 32
+  self.current_quad_index = 0
 end
 
 function Character:movingUpNext()
   self.y = self.y - 8
+  self.current_quad = self:calculateCurrentQuad()
   if self.y < self.state_target_value then
       self.y = self.state_target_value
       self.state = "idle"
@@ -64,6 +78,7 @@ end
 
 function Character:movingDownNext()
   self.y = self.y + self.walk_speed 
+  self.current_quad = self:calculateCurrentQuad()
   if self.y > self.state_target_value then
     self.y = self.state_target_value
     self.state = "idle"
@@ -72,6 +87,7 @@ end
 
 function Character:movingLeftNext()
   self.x = self.x - self.walk_speed 
+  self.current_quad = self:calculateCurrentQuad()
   if self.x < self.state_target_value then
     self.x = self.state_target_value
     self.state = "idle"
@@ -80,6 +96,7 @@ end
 
 function Character:movingRightNext()
   self.x = self.x + self.walk_speed
+  self.current_quad = self:calculateCurrentQuad()
   if self.x > self.state_target_value then
     self.x = self.state_target_value
     self.state = "idle"
@@ -154,7 +171,7 @@ function drawMap(map, tileset, quads, tileWidth, tileHeight)
  end
 
 function drawCharacter(character)
-  local characterQuad = character:getCurrentQuad() 
+  local characterQuad = character.current_quad 
   love.graphics.draw(character.sprite, characterQuad, character.x, character.y)
 end
 
@@ -251,7 +268,7 @@ function love.update(dt)
   --Global.stageOffset = newOffset 
   local character = Global.character  
   totaldt = totaldt + dt
-  framedt = 1 / 30
+  framedt = 1 / 15 
   if totaldt >= framedt then
     totaldt = 0 
     character:update()
