@@ -184,8 +184,13 @@ function initializeWindow()
   love.window.setMode(800, 600)
 end
 
+function initializeKeyboard()
+  love.keyboard.setKeyRepeat(true)
+end
+
 function love.load() 
   initializeWindow()
+  initializeKeyboard()
   local tileset = love.graphics.newImage("assets/tileset.png") 
   -- Generate a list of quads for a tileset.
   local tilesPerRow = 2
