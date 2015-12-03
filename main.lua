@@ -15,6 +15,12 @@ Character.quads = {
   ["idle"] = { love.graphics.newQuad(0, 0, 32, 32, 384, 246) } 
 } 
 
+Map = {}
+Map.wall_cell_type = 2 
+function Map:canWalkTo(x, y, map)
+  return map[y][x] ~= Map.wall_cell_type
+end
+
 function Character:calculateCurrentQuad()
   local quads = self.quads[self.state]
   self.current_quad_index = self.current_quad_index + 1
@@ -35,36 +41,60 @@ function Character:moveLeft()
   if self:isBusy() then
     return
   end
-  self.state = "moving_left"
-  self.state_target_value = self.x - 32
-  self.current_quad_index = 0
+  local target_x = self.x - 32
+  local target_y = self.y
+  local map_x, map_y = toMapCoordinate(target_x, target_y)
+  if Map:canWalkTo(map_x, map_y, self.map) then
+    self.state = "moving_left"
+    self.state_target_value = self.x - 32
+    self.current_quad_index = 0
+  end
 end
 
 function Character:moveRight()
   if self:isBusy() then
     return
   end
-  self.state = "moving_right"
-  self.state_target_value = self.x + 32 
-  self.current_quad_index = 0
+  local target_x = self.x + 32
+  local target_y = self.y
+  local map_x, map_y = toMapCoordinate(target_x, target_y)
+  if Map:canWalkTo(map_x, map_y, self.map) then
+    self.state = "moving_right"
+    self.state_target_value = target_x
+    self.current_quad_index = 0
+  end
+end
+
+function toMapCoordinate(x, y)
+  return x/32, y/32
 end
 
 function Character:moveUp()
   if self:isBusy() then
     return
   end
-  self.state = "moving_up"
-  self.state_target_value = self.y - 32
-  self.current_quad_index = 0
+  local target_x = self.x
+  local target_y = self.y - 32
+  local map_x, map_y = toMapCoordinate(target_x, target_y)
+  if Map:canWalkTo(map_x, map_y, self.map) then
+    self.state = "moving_up"
+    self.state_target_value = target_y
+    self.current_quad_index = 0
+  end
 end
 
 function Character:moveDown()
   if self:isBusy() then
     return
   end
-  self.state = "moving_down"
-  self.state_target_value = self.y + 32
-  self.current_quad_index = 0
+  local target_x = self.x
+  local target_y = self.y + 32
+  local map_x, map_y = toMapCoordinate(target_x, target_y)
+  if Map:canWalkTo(map_x, map_y, self.map) then
+    self.state = "moving_down"
+    self.state_target_value = target_y 
+    self.current_quad_index = 0
+  end
 end
 
 function Character:movingUpNext()
@@ -214,6 +244,7 @@ function love.load()
   local map = generateRandomMap(Global.stageHorizontalTileCount, 64)
   Global.map = map
   Global.character = Character 
+  Character.map = map
   Global.character.sprite = loadCharacterSprite("assets/hetalia_sprite_uk.png")
 end
 
@@ -239,7 +270,6 @@ function moveCharacter(character, key)
 end
 
 function love.keypressed(key, isrepeat)
-  print('key pressed:' .. key)
   if isScrollChangeKey(key) then
     Global.scrollDirection = key 
   elseif isCharacterMoveKey(key) then
