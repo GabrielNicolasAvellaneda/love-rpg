@@ -192,6 +192,7 @@ function isCharacterMoveKey(key)
   return key == "h" or key == "j" or key == "k" or key == "l" 
 end
 
+-- Thispatch player commands based on command keys
 function moveCharacter(character, key)
   if key == "h" then
     character:moveLeft()
@@ -233,11 +234,17 @@ function calculateMaxOffset(stageWidthPixels, screenWidthPixels)
   return stageWidthPixels - screenWidthPixels
 end
 
+totaldt = 0
 function love.update(dt)
   local newOffset = normalizeOffset(calculateOffset(Global.stageOffset, Global.scrollDirection, Global.scrollOffsetDelta), 0, calculateMaxOffset(Global.maxStageWidthPixels, Global.screenWidthPixels))
   --Global.stageOffset = newOffset 
   local character = Global.character  
-  character:update()
+  totaldt = totaldt + dt
+  framedt = 1 / 30
+  if totaldt >= framedt then
+    totaldt = 0 
+    character:update()
+  end
 end
 
 function love.draw()
