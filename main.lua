@@ -1,6 +1,92 @@
 fun = require("fun")()
 local lib = require("lib") 
 
+Character = {}
+Character.x = 320
+Character.y = 320
+Character.state = "idle"     
+Character.move_up_target = 0
+Character.walk_speed = 8  
+function Character:isBusy()
+  return self.state ~= "idle"
+end
+
+function Character:moveLeft()
+  if self:isBusy() then
+    return
+  end
+  self.state = "moving_left"
+  self.state_target_value = self.x - 32
+end
+
+function Character:moveRight()
+  if self:isBusy() then
+    return
+  end
+  self.state = "moving_right"
+  self.state_target_value = self.x + 32 
+end
+
+function Character:moveUp()
+  if self:isBusy() then
+    return
+  end
+  self.state = "moving_up"
+  self.state_target_value = self.y - 32
+end
+
+function Character:moveDown()
+  if self:isBusy() then
+    return
+  end
+  self.state = "moving_down"
+  self.state_target_value = self.y + 32
+end
+
+function Character:movingUpNext()
+  self.y = self.y - 8
+  if self.y < self.state_target_value then
+      self.y = self.state_target_value
+      self.state = "idle"
+    end
+end
+
+function Character:movingDownNext()
+  self.y = self.y + self.walk_speed 
+  if self.y > self.state_target_value then
+    self.y = self.state_target_value
+    self.state = "idle"
+  end
+end
+
+function Character:movingLeftNext()
+  self.x = self.x - self.walk_speed 
+  if self.x < self.state_target_value then
+    self.x = self.state_target_value
+    self.state = "idle"
+  end
+end
+
+function Character:movingRightNext()
+  self.x = self.x + self.walk_speed
+  if self.x > self.state_target_value then
+    self.x = self.state_target_value
+    self.state = "idle"
+  end
+end
+
+function Character:update()
+  if self.state == "moving_up" then
+    self:movingUpNext()
+  elseif self.state == "moving_down" then
+    self:movingDownNext()
+  elseif self.state == "moving_left" then
+    self:movingLeftNext()
+  elseif self.state == "moving_right" then
+    self:movingRightNext()
+  end
+end
+
 function genTransformTo2D(width, height)
   return function (n)
     local ylogical = math.floor(n / width) 
@@ -58,10 +144,10 @@ function drawMap(map, tileset, quads, tileWidth, tileHeight)
 
 function drawCharacter(character)
   local characterQuad = love.graphics.newQuad(0, 0, 32, 32, 384, 246) 
-  love.graphics.draw(character, characterQuad, 320, 320)  
+  love.graphics.draw(character.sprite, characterQuad, character.x, character.y)
 end
 
-function loadCharacter(path)
+function loadCharacterSprite(path)
   return love.graphics.newImage(path)
 end
 
@@ -94,16 +180,36 @@ function love.load()
   --
   local map = generateRandomMap(Global.stageHorizontalTileCount, 64)
   Global.map = map
-  Global.character = loadCharacter("assets/hetalia_sprite_uk.png")
+  Global.character = Character 
+  Global.character.sprite = loadCharacterSprite("assets/hetalia_sprite_uk.png")
 end
 
 function isScrollChangeKey(key)
   return key == "right" or key == "left"
 end
 
+function isCharacterMoveKey(key)
+  return key == "h" or key == "j" or key == "k" or key == "l" 
+end
+
+function moveCharacter(character, key)
+  if key == "h" then
+    character:moveLeft()
+  elseif key == "j" then
+    character:moveDown()
+  elseif key == "k" then
+    character:moveUp()
+  elseif key == "l" then
+    character:moveRight()
+  end
+end
+
 function love.keypressed(key, isrepeat)
+  print('key pressed:' .. key)
   if isScrollChangeKey(key) then
     Global.scrollDirection = key 
+  elseif isCharacterMoveKey(key) then
+    moveCharacter(Global.character, key)
   end
 end
 
@@ -127,9 +233,11 @@ function calculateMaxOffset(stageWidthPixels, screenWidthPixels)
   return stageWidthPixels - screenWidthPixels
 end
 
-function love.update()
+function love.update(dt)
   local newOffset = normalizeOffset(calculateOffset(Global.stageOffset, Global.scrollDirection, Global.scrollOffsetDelta), 0, calculateMaxOffset(Global.maxStageWidthPixels, Global.screenWidthPixels))
   --Global.stageOffset = newOffset 
+  local character = Global.character  
+  character:update()
 end
 
 function love.draw()
