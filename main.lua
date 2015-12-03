@@ -1,9 +1,6 @@
 fun = require("fun")()
 local lib = require("lib") 
 
-
-
-
 function genTransformTo2D(width, height)
   return function (n)
     local ylogical = math.floor(n / width) 
@@ -59,12 +56,19 @@ function drawMap(map, tileset, quads, tileWidth, tileHeight)
     end, map)
  end
 
--- Love callbacks
+function drawCharacter(character)
+  local characterQuad = love.graphics.newQuad(0, 0, 32, 32, 384, 246) 
+  love.graphics.draw(character, characterQuad, 320, 320)  
+end
 
+function loadCharacter(path)
+  return love.graphics.newImage(path)
+end
+
+-- Love callbacks
 function initializeWindow()
   love.window.setMode(800, 600)
 end
-
 
 function love.load() 
   initializeWindow()
@@ -90,6 +94,7 @@ function love.load()
   --
   local map = generateRandomMap(Global.stageHorizontalTileCount, 64)
   Global.map = map
+  Global.character = loadCharacter("assets/hetalia_sprite_uk.png")
 end
 
 function isScrollChangeKey(key)
@@ -124,12 +129,12 @@ end
 
 function love.update()
   local newOffset = normalizeOffset(calculateOffset(Global.stageOffset, Global.scrollDirection, Global.scrollOffsetDelta), 0, calculateMaxOffset(Global.maxStageWidthPixels, Global.screenWidthPixels))
-  print(newOffset)
-  Global.stageOffset = newOffset 
+  --Global.stageOffset = newOffset 
 end
 
 function love.draw()
   love.graphics.translate(Global.stageOffset, 0)
   drawMap(Global.map, Global.tileset, Global.quads, Global.tileWidth, Global.tileHeight)
+  drawCharacter(Global.character)
 end
 
