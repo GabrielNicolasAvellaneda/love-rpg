@@ -7,8 +7,19 @@ Character.y = 320
 Character.state = "idle"     
 Character.move_up_target = 0
 Character.walk_speed = 8  
+Character.quads = {
+  ["moving_down"] = love.graphics.newQuad(0, 0, 32, 32, 384, 246),
+  ["moving_left"] = love.graphics.newQuad(0, 32, 32, 32, 384, 246),
+  ["moving_right"] = love.graphics.newQuad(0, 64, 32, 32, 384, 246),
+  ["moving_up"] = love.graphics.newQuad(0, 96, 32, 32, 384, 246),
+  ["idle"] = love.graphics.newQuad(0, 0, 32, 32, 384, 246) 
+} 
 function Character:isBusy()
   return self.state ~= "idle"
+end
+
+function Character:getCurrentQuad()
+  return self.quads[self.state]  
 end
 
 function Character:moveLeft()
@@ -143,7 +154,7 @@ function drawMap(map, tileset, quads, tileWidth, tileHeight)
  end
 
 function drawCharacter(character)
-  local characterQuad = love.graphics.newQuad(0, 0, 32, 32, 384, 246) 
+  local characterQuad = character:getCurrentQuad() 
   love.graphics.draw(character.sprite, characterQuad, character.x, character.y)
 end
 
